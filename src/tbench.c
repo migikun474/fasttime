@@ -156,17 +156,45 @@ static long monotonicity(int n) {
     return backward;
 }
 
+/* Error of ft_now_ns() against CLOCK_MONOTONIC since one 100 ms calibration, printed at
+ * checkpoints up to `secs`: how long a single calibration stays good enough. */
+static void long_drift(long secs) {
+    static const long at[] = {1, 10, 60, 600, 1800, 3600, 6 * 3600, 24 * 3600};
+    printf("TSC %.6f GHz, error of ft_now_ns() vs CLOCK_MONOTONIC since calibration\n\n"
+           "%10s %14s %10s\n",
+           C.hz / 1e9, "after s", "error us", "ppm");
+    for (unsigned i = 0; i <= sizeof at / sizeof *at; i++) {
+        long t = i < sizeof at / sizeof *at && at[i] < secs ? at[i] : secs;
+        struct timespec until = {(time_t)((C.ns0 / 1000000000u) + t), (long)(C.ns0 % 1000000000u)};
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &until, NULL);
+        uint64_t tsc, mono = ft__pair(CLOCK_MONOTONIC, &tsc);
+        double err = (double)(int64_t)(ft_to_ns(&C, tsc) - mono);
+        printf("%10ld %14.3f %10.3f\n", t, err / 1e3, err / (double)(mono - C.ns0) * 1e6);
+        fflush(stdout);
+        if (t == secs)
+            break;
+    }
+}
+
 int main(int argc, char **argv) {
     int json = 0, quick = 0;
+    long drift_secs = 0;
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--json"))
             json = 1;
         else if (!strcmp(argv[i], "--quick"))
             quick = 1;
+        else if (!strcmp(argv[i], "--drift") && i + 1 < argc && (drift_secs = atol(argv[++i])) > 0)
+            ;
         else {
-            fprintf(stderr, "usage: tbench [--json] [--quick]\n");
+            fprintf(stderr, "usage: tbench [--json] [--quick] | tbench --drift SECONDS\n");
             return 2;
         }
+    }
+    if (drift_secs) {
+        ft_calibrate(&C, 100);
+        long_drift(drift_secs);
+        return 0;
     }
 
     char cs[64] = "unknown";

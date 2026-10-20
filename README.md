@@ -15,6 +15,7 @@ instances, where the `xen` clocksource made time reads 32% of CPU in one service
 make                       # builds tbench and the tests
 scripts/clockcheck.sh      # FAST (exit 0), SLOW (1, with the fix) or UNSAFE (2, with the reason)
 ./tbench                   # p50/p99 cost and resolution of every time source; --json, --quick
+./tbench --drift 3600       # how far ft_now_ns() wanders from CLOCK_MONOTONIC over an hour
 make check                 # unit tests, plus the assembly check that ft_to_ns has no div or call
 sudo scripts/switch_clock.sh && scripts/render.sh results/$(hostname)-*.json   # before/after
 ```
