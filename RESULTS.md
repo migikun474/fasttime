@@ -70,12 +70,15 @@ three clocksources; `switch_clock.sh` ran each and restored `tsc`.
 | 1 h | +74.8 ms | +20.8 ppm | +15 ppm |
 
 - **The rate changes, so the moving clock is most likely `CLOCK_MONOTONIC`, not the TSC.** A TSC
-  with `constant_tsc` ticks at a fixed rate. `CLOCK_MONOTONIC` is disciplined by NTP
-  (systemd-timesyncd or chrony), which corrects it by adjusting its rate; `ft_init` calibrates
-  against `CLOCK_MONOTONIC_RAW`, which NTP never touches. The steady -30 ppm for the first minute
-  matches NTP's frequency correction for this laptop's crystal; the later changes are NTP slewing.
+  with `constant_tsc` ticks at a fixed rate. `ft_init` calibrates against `CLOCK_MONOTONIC_RAW`,
+  which NTP never touches, but `CLOCK_MONOTONIC` is disciplined by NTP (systemd-timesyncd here).
+- **NTP was slewing an offset, not correcting the crystal.** `timedatectl timesync-status` after
+  the run: frequency correction -0.779 ppm, but offset -32.9 ms, delay 407 ms, jitter 45 ms. The
+  kernel removes an offset by running `CLOCK_MONOTONIC` faster or slower by tens of ppm for a
+  while; with a slow, noisy path to the NTP server the measured offset jumps, so the slew keeps
+  changing size and direction: -30, +44, +21, +15 ppm.
 - **Short intervals are unaffected:** 30 ppm is 30 ns per millisecond measured.
 - **Long-run timestamps are:** after one hour on one calibration, `ft_now_ns()` was 75 ms away
   from `CLOCK_MONOTONIC`. Programs that compare `ft_now_ns()` with other clocks over minutes or
   hours must recalibrate.
-- On the cloud VM the same test drifted 0.01 ppm, because its NTP correction was near zero.
+- On the cloud VM the same test drifted 0.01 ppm over 12 s: its clock was not being slewed during the run.
