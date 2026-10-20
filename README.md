@@ -16,6 +16,7 @@ make                       # builds tbench and the tests
 scripts/clockcheck.sh      # FAST (exit 0), SLOW (1, with the fix) or UNSAFE (2, with the reason)
 ./tbench                   # p50/p99 cost and resolution of every time source; --json, --quick
 ./tbench --drift 3600       # how far ft_now_ns() wanders from CLOCK_MONOTONIC over an hour
+./tbench --drift 3600 --recal 60   # the same, recalibrating every minute
 make check                 # unit tests, plus the assembly check that ft_to_ns has no div or call
 sudo scripts/switch_clock.sh && scripts/render.sh results/$(hostname)-*.json   # before/after
 ```
@@ -28,10 +29,12 @@ if (ft_init(&c, 100) != 0)        // -1: no constant_tsc/nonstop_tsc, stay on cl
     ...;
 uint64_t t = ft_now_ns(&c);       // ns, comparable to CLOCK_MONOTONIC
 double ppm = ft_drift_ppm(&c, 1000);
+ft_recalibrate(&c);               // every few minutes: follows NTP without a jump
 ```
 
 `ft_now_ns` is monotonic time, not wall time. A 100 ms calibration usually lands within a few ppm;
-long-running programs should call `ft_init` again every few minutes. Run `clockcheck.sh` first:
+long-running programs should call `ft_recalibrate` every few minutes, which follows NTP's
+adjustments to `CLOCK_MONOTONIC` without making `ft_now_ns()` jump. Run `clockcheck.sh` first:
 a fast clock that is quietly wrong is worse than a slow one.
 
 ## Results

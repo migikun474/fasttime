@@ -80,5 +80,6 @@ three clocksources; `switch_clock.sh` ran each and restored `tsc`.
 - **Short intervals are unaffected:** 30 ppm is 30 ns per millisecond measured.
 - **Long-run timestamps are:** after one hour on one calibration, `ft_now_ns()` was 75 ms away
   from `CLOCK_MONOTONIC`. Programs that compare `ft_now_ns()` with other clocks over minutes or
-  hours must recalibrate.
+  hours should call `ft_recalibrate` every few minutes; `tbench --drift 3600 --recal 60` shows
+  the result.
 - On the cloud VM the same test drifted 0.01 ppm over 12 s: its clock was not being slewed during the run.

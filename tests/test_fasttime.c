@@ -36,6 +36,19 @@ int main(void) {
     ft_set_rate(&c, 210000063u, 100000000u);
     near(c.hz, 2100000000u, 1);
 
+    /* Steering: CLOCK_MONOTONIC runs 30 ppm fast against a 3 GHz TSC. */
+    ft_clock s = {0};
+    ft_set_rate(&s, 3000000000u, 1000000000u);
+    uint64_t T = 300000000000ull, mono = 100003000000ull; /* 100 s of ticks; 100 s + 30 ppm */
+    uint64_t before = to_ns(&s, T);
+    assert(ft_steer(&s, T, mono) == 0);
+    assert(to_ns(&s, T) == before);          /* no jump */
+    near(to_ns(&s, 2 * T), 2 * mono, 0.001); /* the error is gone one interval later */
+    assert(ft_steer(&s, 2 * T, 2 * mono) == 0);
+    near(to_ns(&s, 3 * T), 3 * mono, 0.001);                       /* and stays gone */
+    assert(ft_steer(&s, 2 * T + 1000, 2 * mono + 333) == -1);      /* too soon */
+    assert(ft_steer(&s, 3 * T, 3 * mono + 150000000000ull) == -1); /* too far off to steer */
+
     puts("ok");
     return 0;
 }
