@@ -83,3 +83,26 @@ three clocksources; `switch_clock.sh` ran each and restored `tsc`.
   hours should call `ft_recalibrate` every few minutes; `tbench --drift 3600 --recal 60` shows
   the result.
 - On the cloud VM the same test drifted 0.01 ppm over 12 s: its clock was not being slewed during the run.
+
+## Drift with `ft_recalibrate` every 60 s, same laptop (2026-10-20)
+
+`./tbench --drift 3600 --recal 60` on `ouroboros` (TSC 3.792876 GHz).
+
+| After | Error | Without recalibration (run above) |
+| --- | --- | --- |
+| 1 s | -68.3 us | -30.0 us |
+| 10 s | -679.2 us | -300.1 us |
+| 1 min | -3.94 ms | -1.80 ms |
+| 10 min | +115.0 us | +22.0 ms |
+| 30 min | +10.9 us | +47.1 ms |
+| 1 h | +2.12 ms | +74.8 ms |
+
+- **Until the first recalibration at 60 s nothing changes:** NTP was slewing `CLOCK_MONOTONIC` by
+  about 68 ppm at the start of this run, against 30 ppm in the run above.
+- **After that the error stops accumulating:** 115 us at 10 min, 11 us at 30 min and 2.1 ms at
+  1 h, against 22, 47 and 75 ms on one calibration.
+- **What remains is NTP changing its slew between two recalibrations.** 2.1 ms within one 60 s
+  interval means the slew changed by about 35 ppm in that minute. The error is bounded by the
+  slew change times the interval, so recalibrating every 10 s would cut it about six-fold.
+- Each checkpoint falls at the end of a 60 s interval, just before a recalibration, where the
+  error is largest.
