@@ -35,7 +35,12 @@ a fast clock that is quietly wrong is worse than a slow one.
 
 ## Results
 
-See [RESULTS.md](RESULTS.md). On a cloud VM (p50): `clock_gettime` 19 ns, forced system call
-125 ns, `rdtsc` 10 ns, `ft_now_ns()` 17–19 ns.
+See [RESULTS.md](RESULTS.md). On a bare-metal laptop (p50 per call):
+
+| Clocksource | `clock_gettime(MONOTONIC)` | `ft_now_ns()` |
+| --- | --- | --- |
+| `tsc` | 20 ns | 16 ns |
+| `hpet` | 1,213 ns | 16 ns |
+| `acpi_pm` | 1,966 ns | 16 ns |
 
 x86-64 Linux only. Not covered: clock sync across machines (PTP, NTP), NIC timestamps.
