@@ -14,4 +14,4 @@ jobs:
           make clean all CC=${{ matrix.cc }} CFLAGS="-O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all -Wall -Wextra -Werror"
           ./ft_test
           ./tbench --quick
-          ./tbench --drift 2
+          ./tbench --drift 3 --recal 1
