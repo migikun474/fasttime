@@ -54,3 +54,28 @@ three clocksources; `switch_clock.sh` ran each and restored `tsc`.
   picked, because it reads the TSC directly. Raw `rdtsc` is 8 ns here against 10 ns on the VM.
 - `COARSE` and `time()` stay at 2 to 4 ns under every clocksource: they return the last timer tick
   and never read the counter.
+
+## Drift of one calibration over an hour, bare metal laptop (2026-10-20)
+
+`./tbench --drift 3600` on `ouroboros` (TSC 3.792875 GHz): error of `ft_now_ns()` against
+`CLOCK_MONOTONIC` since a single 100 ms calibration.
+
+| After | Error | Average since calibration | Rate in this interval |
+| --- | --- | --- | --- |
+| 1 s | -30.0 us | -30.0 ppm | -30 ppm |
+| 10 s | -300.1 us | -30.0 ppm | -30 ppm |
+| 1 min | -1.80 ms | -30.0 ppm | -30 ppm |
+| 10 min | +22.0 ms | +36.7 ppm | +44 ppm |
+| 30 min | +47.1 ms | +26.2 ppm | +21 ppm |
+| 1 h | +74.8 ms | +20.8 ppm | +15 ppm |
+
+- **The rate changes, so the moving clock is most likely `CLOCK_MONOTONIC`, not the TSC.** A TSC
+  with `constant_tsc` ticks at a fixed rate. `CLOCK_MONOTONIC` is disciplined by NTP
+  (systemd-timesyncd or chrony), which corrects it by adjusting its rate; `ft_init` calibrates
+  against `CLOCK_MONOTONIC_RAW`, which NTP never touches. The steady -30 ppm for the first minute
+  matches NTP's frequency correction for this laptop's crystal; the later changes are NTP slewing.
+- **Short intervals are unaffected:** 30 ppm is 30 ns per millisecond measured.
+- **Long-run timestamps are:** after one hour on one calibration, `ft_now_ns()` was 75 ms away
+  from `CLOCK_MONOTONIC`. Programs that compare `ft_now_ns()` with other clocks over minutes or
+  hours must recalibrate.
+- On the cloud VM the same test drifted 0.01 ppm, because its NTP correction was near zero.
