@@ -1,0 +1,16 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cc: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v4
+      - run: make CC=${{ matrix.cc }} all check
+      - name: ASan + UBSan
+        run: |
+          make clean all CC=${{ matrix.cc }} CFLAGS="-O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all -Wall -Wextra -Werror"
+          ./ft_test
+          ./tbench --quick

@@ -1,0 +1,18 @@
+name: behaviour
+on: pull_request
+jobs:
+  behaviour:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make tbench
+      # Printed, not gated: the runner's clocksource is GitHub's, not ours.
+      - run: scripts/clockcheck.sh || true
+      - run: ./tbench --json | tee tbench.json
+      - name: ft_now_ns within 100 ppm of CLOCK_MONOTONIC over 2 s, no backward reads
+        run: jq -e '.drift_ppm < 100 and .drift_ppm > -100 and .backward == 0' tbench.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tbench-json
+          path: tbench.json

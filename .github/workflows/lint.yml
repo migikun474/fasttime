@@ -1,0 +1,9 @@
+name: lint
+on: pull_request
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: shellcheck scripts/*.sh
+      - run: clang-format --dry-run --Werror include/*.h src/*.c tests/*.c

@@ -1,0 +1,15 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make tbench CFLAGS="-O2 -static -Wall -Wextra -Werror"
+      - run: gh release create "$GITHUB_REF_NAME" include/fasttime.h scripts/clockcheck.sh tbench RESULTS.md --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}

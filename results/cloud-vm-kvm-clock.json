@@ -1,0 +1,13 @@
+{"clocksource":"kvm-clock","tsc_hz":2799998012,"tsc_safe":true,"drift_ppm":-0.004,"backward":0,"methods":[
+{"id":"monotonic","name":"clock_gettime(MONOTONIC)","p50":23.3,"p99":51.7,"res":22},
+{"id":"realtime","name":"clock_gettime(REALTIME)","p50":23.3,"p99":50.1,"res":22},
+{"id":"monotonic_raw","name":"clock_gettime(MONOTONIC_RAW)","p50":23.5,"p99":49.9,"res":23},
+{"id":"monotonic_coarse","name":"clock_gettime(MONOTONIC_COARSE)","p50":4.7,"p99":9.4,"res":4000000},
+{"id":"gettimeofday","name":"gettimeofday","p50":26.0,"p99":60.3,"res":1000},
+{"id":"time","name":"time()","p50":2.4,"p99":5.3,"res":0},
+{"id":"syscall","name":"syscall(SYS_clock_gettime)","p50":131.3,"p99":194.7,"res":130},
+{"id":"rdtsc","name":"rdtsc","p50":10.0,"p99":29.7,"res":8},
+{"id":"rdtscp","name":"rdtscp","p50":13.8,"p99":33.1,"res":16},
+{"id":"lfence_rdtsc","name":"lfence; rdtsc","p50":14.7,"p99":36.1,"res":16},
+{"id":"ft_now_ns","name":"ft_now_ns()","p50":16.8,"p99":38.3,"res":16}
+]}
